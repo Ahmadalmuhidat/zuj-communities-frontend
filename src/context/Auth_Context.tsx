@@ -81,9 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await AxiosClient.get("/auth/login", { params: { email, password } });
 
-      if (res.status == 200) {
+      if (res.status == 201) {
         localStorage.setItem("token", res.data.data);
-        return true;
+        navigate("/");
       }
 
       return false;
