@@ -26,8 +26,7 @@ export default function SocietyCard(props: SocietyProps) {
   return (
     <div 
       onClick={handleClick}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-gray-100"
-    >
+      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-gray-100">
       <div className="relative h-44 w-full overflow-hidden">
         <img 
           src={props.Image || 'https://hitec-ims.edu.pk/wp-content/uploads/2024/03/College-Societies.jpg'}

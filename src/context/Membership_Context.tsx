@@ -1,6 +1,6 @@
 // hooks/useSocietyMembership.ts
 import { useEffect, useState } from 'react';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 import { useAuth } from '@/context/Auth_Context';
 import { useParams } from 'react-router-dom';
 
@@ -17,7 +17,7 @@ export function SocietyMembership() {
       }
 
       try {
-        const response = await Axios_Client.get('/societies/check_membership', {
+        const response = await AxiosClient.get('/societies/check_membership', {
           params: {
             token: localStorage.getItem("token"),
             society_id: societyId

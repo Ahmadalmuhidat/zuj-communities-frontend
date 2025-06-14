@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import SocietyHeader from '@/Shared_Components/societies/SocietyHeader';
 import Post_Card from '@/Shared_Components/post/Post_Card';
 import EventCard from '@/pages/Events/Components/EventCard';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 import { SocietyMembership } from '@/context/Membership_Context';
 
 interface Post {
@@ -14,7 +14,8 @@ interface Post {
   Comments: string,
   User: string,
   User_Name: string,
-  User_Image: string
+  User_Image: string,
+  Is_Liked: boolean
 };
 
 type Event = {
@@ -36,7 +37,7 @@ export default function Society_Detail() {
 
   const get_posts = async () => {
     try {
-      const res = await Axios_Client.get("/posts/get_posts_by_society", {
+      const res = await AxiosClient.get("/posts/get_posts_by_society", {
         params: {
           token: localStorage.getItem("token"),
           society_id: id
@@ -51,8 +52,22 @@ export default function Society_Detail() {
     }
   };
 
+  const get_events_by_society = async () => {
+    const res = await AxiosClient.get("/events/get_events_by_society", {
+      params: {
+        society_id: id
+      }
+    })
+
+    if (res.status == 201) {
+      console.log(res.data.data)
+      setEvents(res.data.data);
+    }
+  }
+
   useEffect(() => {
     get_posts();
+    get_events_by_society();
   }, [id]);
 
   return (

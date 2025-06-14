@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import SocietyCard from '../../Shared_Components/societies/SocietyCard';
 import { useAuth } from '@/context/Auth_Context';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 import { useEffect, useState } from 'react';
 
 interface Society {
@@ -16,8 +16,8 @@ export default function Societies() {
   const [societies, setSocieties] = useState<Society[]>([]);
   const { isAuthenticated } = useAuth();
 
-  const get_societies = async () => {
-    const res = await Axios_Client.get("/societies/get_all_societies", {
+  const getSocieties = async () => {
+    const res = await AxiosClient.get("/societies/get_all_societies", {
       params: {
         token: localStorage.getItem("token")
       }
@@ -29,7 +29,7 @@ export default function Societies() {
   };
 
   useEffect(() => {
-    get_societies();
+    getSocieties();
   }, []);
 
   return (

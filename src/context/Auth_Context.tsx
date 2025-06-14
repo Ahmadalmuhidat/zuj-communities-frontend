@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 
 interface User {
   ID: string,
@@ -41,8 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const get_user_info = async () => {
-    const res = await Axios_Client.get("/users/get_user_info", {
+  const getUserInformation = async () => {
+    const res = await AxiosClient.get("/users/get_user_info", {
       params: {
         token: localStorage.getItem("token")
       }
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem('token');
 
     if (token) {
-      get_user_info();
+      getUserInformation();
     }
 
     setIsLoading(false);
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, remember = false): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const res = await Axios_Client.get("/auth/login", { params: { email, password } });
+      const res = await AxiosClient.get("/auth/login", { params: { email, password } });
 
       if (res.status == 200) {
         localStorage.setItem("token", res.data.data);
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async ({ firstName, lastName, email, password }: SignupData): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const res = await Axios_Client.post('/auth/register', {
+      const res = await AxiosClient.post('/auth/register', {
         name: `${firstName} ${lastName}`,
         email,
         password,

@@ -1,9 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type EventCardProps = {
   ID: string;
   Title: string;
-  Date: string; // assumed to be ISO format: "2025-05-30"
+  Date: string;
   Time: string;
   Description: string;
   Category: string;
@@ -12,15 +13,23 @@ type EventCardProps = {
 };
 
 export default function EventCard(props: EventCardProps) {
-  // Format date nicely
+  const navigate = useNavigate();
+
   const formattedDate = new Date(props.Date).toLocaleDateString(undefined, {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
   });
 
+  const handleClick = () => {
+    navigate(`/events/${props.ID}`);
+  };
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-md group transition-all duration-300 hover:shadow-xl transform hover:-translate-y-2 cursor-pointer max-w-md mx-auto">
+    <div
+      onClick={handleClick}
+      className="bg-white rounded-2xl overflow-hidden shadow-md group transition-all duration-300 hover:shadow-xl transform hover:-translate-y-2 cursor-pointer max-w-md mx-auto"
+    >
       <div className="relative h-48 w-full overflow-hidden">
         <img 
           src={props.Image}
@@ -31,13 +40,11 @@ export default function EventCard(props: EventCardProps) {
       </div>
 
       <div className="p-4 flex gap-4">
-        {/* Date block */}
         <div className="flex flex-col items-center justify-center bg-indigo-100 rounded-xl px-3 py-2 text-indigo-700">
           <span className="text-xs font-semibold">{props.Time}</span>
           <span className="text-sm font-bold">{formattedDate}</span>
         </div>
 
-        {/* Event info */}
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-700 transition duration-300">{props.Title}</h3>
           <p className="text-sm text-gray-600 mt-1">{props.Description}</p>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import EventCard from './Components/EventCard';
 import EventFilters from './Components/EventFilters';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 
 type Event = {
   ID: string;
@@ -22,8 +22,8 @@ export default function Events() {
   });
   const [events, setEvents] = useState<Event[]>([]);
 
-  const get_events = async () => {
-    const res = await Axios_Client.get("/events/get_all_events", {
+  const getEvents = async () => {
+    const res = await AxiosClient.get("/events/get_all_events", {
       params: {
         token: localStorage.getItem("token")
       }
@@ -35,7 +35,7 @@ export default function Events() {
   };
 
   useEffect(() => {
-    get_events();
+    getEvents();
   }, []);
 
   return (

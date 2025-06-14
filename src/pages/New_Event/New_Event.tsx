@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
+import { toast } from 'react-hot-toast';
 
 interface EventFormData {
   title: string;
@@ -104,32 +105,34 @@ export default function New_Event() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const createNewEvent = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
-
+    const loadingToastId = toast.loading(`creating new event`);
     setIsSubmitting(true);
 
     try {
-      const res = await Axios_Client.post("/events/create_event", {
+      const res = await AxiosClient.post("/events/create_event", {
         token: localStorage.getItem("token"),
         title: formData.title,
         description: formData.description,
         date: formData.date,
         time: formData.startTime,
+        category: formData.category,
         society_id: id,
         location: formData.location,
         image: formData.imageUrl
       });
 
       if (res.status == 201) {
+        toast.success(`event has been created`, { id: loadingToastId });
         navigate(`/societies/${id}/events`);
       }
     } catch (error) {
-      console.error('Error creating event:', error);
+      toast.error(`Something went wrong while creating the event`, { id: loadingToastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -148,7 +151,7 @@ export default function New_Event() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={createNewEvent} className="space-y-8">
             {/* Basic Information */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Event Details</h2>
@@ -194,9 +197,7 @@ export default function New_Event() {
                     id="category"
                     value={formData.category}
                     onChange={(e) => handleInputChange('category', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                  >
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? 'border-red-500' : 'border-gray-300'}`}>
                     <option value="">Select a category</option>
                     {categories.map(category => (
                       <option key={category} value={category}>{category}</option>

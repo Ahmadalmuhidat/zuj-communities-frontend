@@ -1,63 +1,37 @@
 import { Link } from 'react-router-dom';
 import SocietyCard from '@/Shared_Components/societies/SocietyCard';
 import { useAuth } from '@/context/Auth_Context';
+import AxiosClient from '@/config/axios';
+import { useEffect, useState } from 'react';
 
-const userSocieties = [
-  {
-    id: '1',
-    name: 'Photography Club',
-    description: 'Capture the world through your lens. Join our community of passionate photographers.',
-    memberCount: 245,
-    image: '/images/societies/photography.jpg'
-  },
-  {
-    id: '5',
-    name: 'Coding Club',
-    description: 'Learn programming, build projects, and collaborate with fellow developers.',
-    memberCount: 428,
-    image: '/images/societies/coding.jpg'
-  }
-];
-
-const managedSocieties = [
-  {
-    id: '3',
-    name: 'Environmental Club',
-    description: 'Work together to create a more sustainable and eco-friendly campus.',
-    memberCount: 312,
-    image: '/images/societies/environment.jpg'
-  }
-];
-
-const recentActivity = [
-  {
-    id: '1',
-    type: 'event',
-    title: 'Photography Workshop',
-    society: 'Photography Club',
-    date: '2 days ago',
-    description: 'New workshop on portrait photography techniques'
-  },
-  {
-    id: '2',
-    type: 'post',
-    title: 'New Project Showcase',
-    society: 'Coding Club',
-    date: '1 week ago',
-    description: 'Members shared their latest coding projects'
-  },
-  {
-    id: '3',
-    type: 'member',
-    title: 'New Member Joined',
-    society: 'Environmental Club',
-    date: '3 days ago',
-    description: '5 new members joined this week'
-  }
-];
+interface Society {
+  ID: string;
+  Image: string;
+  Name: string;
+  Category: string;
+  Description: string;
+  Role: string
+}
 
 export default function My_Societies() {
   const { user } = useAuth();
+  const [societies, setSocieties] = useState<Society[]>([]);
+
+  const get_societies_by_user = async () => {
+    const res = await AxiosClient.get("/societies/get_societies_by_user", {
+      params: {
+        token: localStorage.getItem("token")
+      }
+    })
+
+    if (res.status == 201) {
+      setSocieties(res.data.data);
+    }
+  };
+
+  useEffect(() => {
+    get_societies_by_user();
+  }, []);
 
   return (
     <>
@@ -65,7 +39,7 @@ export default function My_Societies() {
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">My Societies</h1>
-            <Link 
+            <Link
               to="/societies"
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
@@ -76,7 +50,7 @@ export default function My_Societies() {
           {/* Welcome Message */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
-              Welcome back, {user?.firstName}!
+              Welcome back, {user?.Name}!
             </h2>
             <p className="text-gray-600">
               Here's what's happening in your societies and communities.
@@ -84,7 +58,7 @@ export default function My_Societies() {
           </div>
 
           {/* Societies I Manage */}
-          {managedSocieties.length > 0 && (
+          {societies.filter(soc => soc.Role === 'admin').length > 0 && (
             <div className="mb-12">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800">Societies I Manage</h2>
@@ -93,14 +67,16 @@ export default function My_Societies() {
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {managedSocieties.map((society) => (
-                  <div key={society.id} className="relative">
-                    <SocietyCard {...society} />
-                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
-                      Manager
+                {societies
+                  .filter(society => society.Role === 'admin')
+                  .map((society) => (
+                    <div key={society.ID} className="relative">
+                      <SocietyCard {...society} />
+                      <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
+                        Manager
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -109,19 +85,21 @@ export default function My_Societies() {
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Memberships</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userSocieties.map((society) => (
-                <div key={society.id} className="relative">
-                  <SocietyCard {...society} />
-                  <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
-                    Member
+              {societies
+                .filter(society => society.Role === 'member')
+                .map((society) => (
+                  <div key={society.ID} className="relative">
+                    <SocietyCard {...society} />
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+                      Member
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
           {/* Recent Activity */}
-          <div className="mb-12">
+          {/* <div className="mb-12">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Recent Activity</h2>
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               {recentActivity.map((activity, index) => (
@@ -161,23 +139,23 @@ export default function My_Societies() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Quick Stats */}
           <div className="bg-white rounded-lg shadow-md p-8">
             <h3 className="text-xl font-semibold text-gray-800 mb-4">Your Impact</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
-                <div className="text-3xl font-bold text-blue-600">{userSocieties.length + managedSocieties.length}</div>
-                <div className="text-gray-600">Societies Joined</div>
+                <div className="text-3xl font-bold text-blue-600">
+                  {societies.filter(soc => soc.Role === 'member').length}
+                </div>
+                <div className="text-gray-600">Admonished Societies</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-green-600">{managedSocieties.length}</div>
-                <div className="text-gray-600">Societies Managed</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-purple-600">12</div>
-                <div className="text-gray-600">Events Attended</div>
+                <div className="text-3xl font-bold text-blue-600">
+                  {societies.filter(soc => soc.Role === 'admin').length}
+                </div>
+                <div className="text-gray-600">Admonished Societies</div>
               </div>
             </div>
           </div>

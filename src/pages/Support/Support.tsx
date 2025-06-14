@@ -1,3 +1,4 @@
+import AxiosClient from '@/config/axios';
 import { useState } from 'react';
 
 const faqs = [
@@ -9,7 +10,7 @@ const faqs = [
   {
     id: 2,
     question: 'How can I create my own society?',
-    answer: 'You can create a new society by going to the Societies page and clicking "Create Society". Fill out the required information including society name, description, and category. Your society will be reviewed and approved within 24-48 hours.'
+    answer: 'You can create a new society by going to the Societies page and clicking "Create Society". Fill out the required information including society name, description, and category.'
   },
   {
     id: 3,
@@ -19,28 +20,16 @@ const faqs = [
   {
     id: 4,
     question: 'Can I leave a society after joining?',
-    answer: 'Yes, you can leave a society at any time by going to your "My Societies" page and clicking the leave button next to the society you want to exit.'
-  },
-  {
-    id: 5,
-    question: 'How do I reset my password?',
-    answer: 'Click on the "Forgot Password" link on the login page. Enter your email address and we\'ll send you instructions to reset your password.'
-  },
-  {
-    id: 6,
-    question: 'How can I report inappropriate content?',
-    answer: 'You can report inappropriate content by clicking the report button (flag icon) on any post or comment. Our moderation team will review the content within 24 hours.'
+    answer: 'Yes, you can leave a society at any time by going to settings tab and clicking the leave button in the danger zone.'
   }
 ];
 
 export default function Support() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [contactForm, setContactForm] = useState({
-    name: '',
-    email: '',
     subject: '',
     message: '',
-    category: 'general'
+    category: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -60,19 +49,22 @@ export default function Support() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setSubmitted(true);
-    setIsSubmitting(false);
-    setContactForm({
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-      category: 'general'
-    });
+
+    try {
+      const res = await AxiosClient.post('/support/create_ticket', {
+        token: localStorage.getItem("token"),
+        category: contactForm.category,
+        subject: contactForm.subject,
+        content: contactForm.message
+      });
+
+      if (res.status == 200) {
+        setIsSubmitting(false);
+        setSubmitted(true);
+      }
+    } catch (error) {
+      console.error('create ticket failed', error);
+    }
   };
 
   return (
@@ -117,33 +109,6 @@ export default function Support() {
                   </div>
                 ))}
               </div>
-
-              {/* Quick Help Cards */}
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <div className="flex items-center mb-3">
-                    <svg className="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <h3 className="font-semibold text-blue-800">User Guide</h3>
-                  </div>
-                  <p className="text-blue-700 text-sm">
-                    Learn how to make the most of Society with our comprehensive user guide.
-                  </p>
-                </div>
-                
-                <div className="bg-green-50 p-6 rounded-lg">
-                  <div className="flex items-center mb-3">
-                    <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-2-2V10a2 2 0 012-2h8z" />
-                    </svg>
-                    <h3 className="font-semibold text-green-800">Live Chat</h3>
-                  </div>
-                  <p className="text-green-700 text-sm">
-                    Get instant help from our support team during business hours.
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* Contact Form */}
@@ -168,38 +133,6 @@ export default function Support() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        required
-                        value={contactForm.name}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        value={contactForm.email}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-
                   <div>
                     <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                       Category

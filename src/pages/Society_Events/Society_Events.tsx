@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SocietyHeader from '@/Shared_Components/societies/SocietyHeader';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 import { SocietyMembership } from '@/context/Membership_Context';
 import { useAuth } from '@/context/Auth_Context';
 
@@ -24,10 +24,8 @@ export default function Society_Events() {
   const { isMember } = SocietyMembership();
   const { isAuthenticated } = useAuth();
 
-
-
   const get_events_by_society = async () => {
-    const res = await Axios_Client.get("/events/get_events_by_society", {
+    const res = await AxiosClient.get("/events/get_events_by_society", {
       params: {
         society_id: id
       }

@@ -75,7 +75,7 @@ export default function About() {
           </div>
 
           {/* Stats Section */}
-          <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          {/* <div className="bg-white rounded-lg shadow-md p-8 mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Our Community</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
               <div>
@@ -95,7 +95,7 @@ export default function About() {
                 <div className="text-gray-600">Research Labs</div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Contact Section */}
           <div className="bg-white rounded-lg shadow-md p-8">

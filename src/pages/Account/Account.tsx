@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/Auth_Context';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
+import { toast } from 'react-hot-toast';
 
 interface User_Info {
   ID: string,
@@ -11,7 +11,7 @@ interface User_Info {
   Create_Date: string,
   Society_Count: number,
   Event_Count: number,
-  Post_Count: number,
+  Post_Count: number
 }
 
 export default function Account() {
@@ -32,8 +32,12 @@ export default function Account() {
     allowMessages: true
   });
 
-  const get_user_profile_info = async () => {
-    const res = await Axios_Client.get("/users/get_user_profile_info", {
+  const handleProfileChange = (field: keyof User_Info, value: string) => {
+    setProfileData(prev => prev ? { ...prev, [field]: value } : prev);
+  };
+
+  const getUserProfileInfo = async () => {
+    const res = await AxiosClient.get("/users/get_user_profile_info", {
       params: {
         token: localStorage.getItem("token")
       }
@@ -44,10 +48,28 @@ export default function Account() {
     }
   };
 
-  const handleProfileSave = () => {
-    // In real app, make API call to update profile
-    setIsEditing(false);
-    console.log('Profile updated:', profileData);
+  const handleProfileSave = async () => {
+    const loadingToastId = toast.loading(`updating profile`);
+    try {
+      if (!profileData) {
+        return
+      };
+      const res = await AxiosClient.put("/users/update_profile", {
+        token: localStorage.getItem("token"),
+        name: profileData.Name,
+        email: profileData.Email,
+        phone: profileData.Phone_Number,
+        bio: profileData.Bio
+      });
+
+      if (res.status === 200) {
+        setIsEditing(false);
+        toast.success(`profile has been updated`, { id: loadingToastId });
+      }
+    } catch (error) {
+      toast.error(`failed to update profile`, { id: loadingToastId });
+      setIsEditing(false);
+    }
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
@@ -65,7 +87,7 @@ export default function Account() {
   };
 
   useEffect(() => {
-    get_user_profile_info();
+    getUserProfileInfo();
   }, []);
 
   return (
@@ -127,9 +149,9 @@ export default function Account() {
               <nav className="flex space-x-8 px-6">
                 {[
                   { id: 'profile', label: 'Profile', icon: '👤' },
-                  { id: 'notifications', label: 'Notifications', icon: '🔔' },
-                  { id: 'privacy', label: 'Privacy', icon: '🔒' },
-                  { id: 'security', label: 'Security', icon: '🛡️' }
+                  // { id: 'notifications', label: 'Notifications', icon: '🔔' },
+                  // { id: 'privacy', label: 'Privacy', icon: '🔒' },
+                  // { id: 'security', label: 'Security', icon: '🛡️' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -154,9 +176,8 @@ export default function Account() {
                     <h2 className="text-xl font-semibold text-gray-800">Profile Information</h2>
                     <button
                       onClick={() => isEditing ? handleProfileSave() : setIsEditing(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {isEditing ? 'Save Changes' : 'Edit Profile'}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        {isEditing ? 'Save Changes' : 'Edit Profile'}
                     </button>
                   </div>
 
@@ -165,8 +186,8 @@ export default function Account() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                       <input
                         type="text"
-                        value={profileData?.Name}
-                        // onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                        value={profileData?.Name || ''}
+                        onChange={(e) => handleProfileChange("Name", e.target.value)}
                         disabled={!isEditing}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       />
@@ -176,8 +197,8 @@ export default function Account() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                       <input
                         type="email"
-                        value={profileData?.Email}
-                        // onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        value={profileData?.Email || ''}
+                        onChange={(e) => handleProfileChange("Email", e.target.value)}
                         disabled={!isEditing}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       />
@@ -187,8 +208,8 @@ export default function Account() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                       <input
                         type="tel"
-                        value={profileData?.Phone_Number}
-                        // onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        value={profileData?.Phone_Number || ''}
+                        onChange={(e) => handleProfileChange("Phone_Number", e.target.value)}
                         disabled={!isEditing}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       />

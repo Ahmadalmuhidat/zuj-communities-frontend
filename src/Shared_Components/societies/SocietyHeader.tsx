@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SocietyNav from './SocietyNav';
 import { useAuth } from '@/context/Auth_Context';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 
 interface SocietyHeaderProps {
   societyId: string;
@@ -17,11 +17,10 @@ export default function SocietyHeader({
   const [details, setDetails] = useState<any>({});
   const { isAuthenticated } = useAuth();
   const [joinRequested, setJoinRequested] = useState(false);
-  
 
   const getSocietyDetails = async () => {
     try {
-      const res = await Axios_Client.get('/societies/get_society_info', {
+      const res = await AxiosClient.get('/societies/get_society_info', {
         params: { society_id: societyId },
       });
 
@@ -39,7 +38,7 @@ export default function SocietyHeader({
       return;
     }
 
-    const res = await Axios_Client.post("/societies/join_society_request", {
+    const res = await AxiosClient.post("/societies/join_society_request", {
       society_id: societyId,
       token: localStorage.getItem("token")
     })

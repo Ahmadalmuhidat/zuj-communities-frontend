@@ -9,7 +9,7 @@ import Signup from './pages/Register/Signup'
 import About from './pages/About/About'
 import Account from './pages/Account/Account'
 import Events from './pages/Events/Events'
-import Search from './pages/Search'
+import Search from './pages/Search/Search'
 import Support from './pages/Support/Support'
 import My_Societies from './pages/My_Societies/My_Societies'
 import Societies from './pages/Societies/Societies'
@@ -22,6 +22,7 @@ import New_Society from './pages/New_Society/New_Society'
 import New_Event from './pages/New_Event/New_Event'
 import Header from '@/Shared_Components/layout/Header';
 import Search_Header from '@/Shared_Components/layout/Search_Header';
+import EventDetailsPage from './pages/Event_Details/Event_Details'
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/account" element={<Account />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:id" element={<EventDetailsPage />} />
             <Route path="/search" element={<Search />} />
             <Route path="/support" element={<Support />} />
             <Route path="/my-societies" element={<My_Societies />} />

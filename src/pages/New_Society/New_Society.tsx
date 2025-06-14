@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
+import { toast } from 'react-hot-toast';
 
 interface SocietyFormData {
   name: string;
@@ -74,16 +75,17 @@ export default function New_Society() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const createNewSociety = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
+    const loadingToastId = toast.loading(`creating new society`);
     setIsSubmitting(true);
 
     try {
-      const res = await Axios_Client.post("/societies/create_society", {
+      const res = await AxiosClient.post("/societies/create_society", {
         name: formData.name,
         description: formData.description,
         token: localStorage.getItem("token"),
@@ -93,12 +95,14 @@ export default function New_Society() {
       })
 
       if (res.status == 201) {
+        toast.success(`society has been created`, { id: loadingToastId });
         navigate('/societies/' + res.data.data);
+        
       } else {
         throw ("Error creating society");
       }
     } catch (error) {
-      console.error('Error creating society:', error);
+      toast.error(`Something went wrong while creating the society`, { id: loadingToastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -117,7 +121,7 @@ export default function New_Society() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={createNewSociety} className="space-y-8">
             {/* Basic Information */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Basic Information</h2>
@@ -196,7 +200,7 @@ export default function New_Society() {
             </div>
 
             {/* Privacy Settings */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            {/* <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Privacy Settings</h2>
 
               <div className="space-y-6">
@@ -244,7 +248,7 @@ export default function New_Society() {
                   </label>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Submit Buttons */}
             <div className="flex justify-end space-x-4">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import SocietyHeader from '@/Shared_Components/societies/SocietyHeader';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 
 interface Member {
   ID: string;
@@ -17,9 +17,32 @@ export default function Society_Members() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
   const [members, setMembers] = useState<Member[]>([]);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [newRole, setNewRole] = useState<string>('');
+  const [showModal, setShowModal] = useState(false);
 
-  const get_all_members = async () => {
-    const res = await Axios_Client.get("/societies/get_all_members", {
+  const handleRoleUpdate = async () => {
+    if (!selectedMember) return;
+
+    try {
+      const res = await AxiosClient.put('/societies/update_member_role', {
+        token: localStorage.getItem("token"),
+        member: selectedMember.ID,
+        role: newRole,
+        society_id: id
+      });
+
+      if (res.status === 200) {
+        getAllSocietyMembers();
+        setShowModal(false);
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+    }
+  };
+
+  const getAllSocietyMembers = async () => {
+    const res = await AxiosClient.get("/societies/get_all_members", {
       params: {
         society_id: id
       }
@@ -67,7 +90,7 @@ export default function Society_Members() {
   };
 
   useEffect(() => {
-    get_all_members();
+    getAllSocietyMembers();
   }, []);
 
   return (
@@ -206,9 +229,21 @@ export default function Society_Members() {
                           View Profile
                         </button>
                         {member.Role !== 'admin' && (
-                          <button className="text-red-600 hover:text-red-800 text-sm font-medium">
-                            Remove
-                          </button>
+                          <>
+                            <button
+                              className="text-green-600 hover:text-green-800 text-sm font-medium"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setNewRole(member.Role);
+                                setShowModal(true);
+                              }}
+                            >
+                              Change Role
+                            </button>
+                            <button className="text-red-600 hover:text-red-800 text-sm font-medium">
+                              Remove
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -229,6 +264,32 @@ export default function Society_Members() {
               </div>
             )}
           </div>
+
+          {showModal && selectedMember && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Change Role for {selectedMember.Name}</h3>
+
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                >
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg" >Cancel</button>
+                  <button
+                    onClick={handleRoleUpdate}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg">Save</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </>

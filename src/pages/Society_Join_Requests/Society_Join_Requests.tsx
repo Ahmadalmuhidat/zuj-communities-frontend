@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import SocietyHeader from '@/Shared_Components/societies/SocietyHeader';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 
 interface JoinRequest {
   Request_ID: string;
@@ -20,7 +20,7 @@ export default function Society_Join_Requests() {
   const [filter, setFilter] = useState<string>('pending');
 
   const get_all_join_requests = async () => {
-    const res = await Axios_Client.get("/societies/get_all_join_requests", {
+    const res = await AxiosClient.get("/societies/get_all_join_requests", {
       params: {
         society_id: id
       }
@@ -37,7 +37,7 @@ export default function Society_Join_Requests() {
       req.Request_ID === requestId ? { ...req, status: 'approved' as const } : req
     ));
 
-    const res = await Axios_Client.post("/societies/approve_request", {
+    const res = await AxiosClient.post("/societies/approve_request", {
       request_id: requestId
     })
 
@@ -51,7 +51,7 @@ export default function Society_Join_Requests() {
       req.Request_ID === requestId ? { ...req, status: 'rejected' as const } : req
     ));
 
-        const res = await Axios_Client.post("/societies/reject_request", {
+        const res = await AxiosClient.post("/societies/reject_request", {
       request_id: requestId
     })
 

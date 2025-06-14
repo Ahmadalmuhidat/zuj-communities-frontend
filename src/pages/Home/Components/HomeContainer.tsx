@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import Post_Card from '@/Shared_Components/post/Post_Card';
 import { useEffect, useState } from 'react';
-import Axios_Client from '@/config/axios';
+import AxiosClient from '@/config/axios';
 
 interface Post {
   ID: string;
@@ -12,15 +12,16 @@ interface Post {
   Comments: string,
   User: string,
   User_Name: string,
-  User_Image: string
+  User_Image: string,
+  Is_Liked: boolean
 };
 
 export default function HomeContainer() {
   const [posts, setPosts] = useState<Post[]>([]);
   
-  const get_posts = async () => {
+  const getPosts = async () => {
     try {
-      const res = await Axios_Client.get("/posts/get_all_posts", {
+      const res = await AxiosClient.get("/posts/get_all_posts", {
         params: {
           token: localStorage.getItem("token")
         }
@@ -35,7 +36,7 @@ export default function HomeContainer() {
   };
 
   useEffect(() => {
-    get_posts();
+    getPosts();
   }, []);
 
   return (

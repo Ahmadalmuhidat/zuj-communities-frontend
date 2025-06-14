@@ -7,7 +7,7 @@ import axios, {
 
 const BASE_URL = 'http://localhost:3000/';
 
-const Axios_Client: AxiosInstance = axios.create({
+const AxiosClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -16,7 +16,7 @@ const Axios_Client: AxiosInstance = axios.create({
 });
 
 // Request interceptor
-Axios_Client.interceptors.request.use(
+AxiosClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -28,7 +28,7 @@ Axios_Client.interceptors.request.use(
 );
 
 // Response interceptor
-Axios_Client.interceptors.response.use(
+AxiosClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error) => {
     if (error.response?.status === 401) {
@@ -38,4 +38,4 @@ Axios_Client.interceptors.response.use(
   }
 );
 
-export default Axios_Client;
+export default AxiosClient;

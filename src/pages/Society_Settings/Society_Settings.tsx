@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SocietyHeader from '@/Shared_Components/societies/SocietyHeader';
+import AxiosClient from '@/config/axios';
+import { toast } from 'react-hot-toast';
 
 interface SocietySettings {
   general: {
     name: string;
     description: string;
-    category: string;
-    website: string;
-    email: string;
-    location: string;
-    tags: string[];
+    image: string;
+    category: string
   };
   privacy: {
     visibility: 'public' | 'private' | 'invite-only';
@@ -33,16 +33,14 @@ interface SocietySettings {
 
 export default function Society_Settings() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState<SocietySettings>({
     general: {
-      name: 'AI & Machine Learning Society',
-      description: 'Exploring the frontiers of artificial intelligence and machine learning through workshops, discussions, and hands-on projects.',
-      category: 'Technology',
-      website: 'https://aiml-society.university.edu',
-      email: 'contact@aiml-society.university.edu',
-      location: 'Computer Science Building',
-      tags: ['AI', 'Machine Learning', 'Technology', 'Programming']
+      name: '',
+      description: '',
+      image: '',
+      category: ''
     },
     privacy: {
       visibility: 'public',
@@ -64,6 +62,49 @@ export default function Society_Settings() {
   });
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleSaveChanges = async () => {
+    const loadingToastId = toast.loading(`updating society information`);
+    try {
+      const res = await AxiosClient.put("/societies/update_info", {
+        token: localStorage.getItem("token"),
+        name: settings.general.name,
+        description: settings.general.description,
+        category: settings.general.category,
+        society_id: id
+      })
+  
+      if (res.status == 200) {
+        toast.success(`society information has been updated`, { id: loadingToastId });
+        console.log(res.data.data);
+      }
+    } catch (error) {
+      toast.error(`Something went wrong while updating the society information`, { id: loadingToastId });
+    }
+  };
+
+  const getSocietyDetails = async () => {
+    try {
+      const res = await AxiosClient.get('/societies/get_society_info', {
+        params: { society_id: id },
+      });
+
+      if (res.status === 200) {
+        setSettings(prevSettings => ({
+          ...prevSettings,
+          general: {
+            ...prevSettings.general,
+            name: res.data.data.Name,
+            description: res.data.data.Description,
+            image: res.data.data.Image,
+            category: res.data.data.Category
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching society details:', error);
+    }
+  };
 
   const handleGeneralChange = (field: string, value: string | string[]) => {
     setSettings(prev => ({
@@ -105,23 +146,34 @@ export default function Society_Settings() {
     }));
   };
 
-  const addTag = (tag: string) => {
-    if (tag && !settings.general.tags.includes(tag)) {
-      handleGeneralChange('tags', [...settings.general.tags, tag]);
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    handleGeneralChange('tags', settings.general.tags.filter(tag => tag !== tagToRemove));
+  const leaveSociety = async () => {
+    const loadingToastId = toast.loading(`leaving society`);
+    try {
+      const res = await AxiosClient.put("/societies/leave_society", {
+        token: localStorage.getItem("token"),
+        society_id: id
+      })
+  
+      if (res.status == 200) {
+        toast.success(`you left society`, { id: loadingToastId });
+        navigate("/societies")
+      }
+    } catch (error) {
+      toast.error(`Something went wrong while leaving the society`, { id: loadingToastId });
+    } 
   };
 
   const tabs = [
     { id: 'general', label: 'General', icon: '⚙️' },
-    { id: 'privacy', label: 'Privacy', icon: '🔒' },
-    { id: 'permissions', label: 'Permissions', icon: '👥' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔' },
+    // { id: 'privacy', label: 'Privacy', icon: '🔒' },
+    // { id: 'permissions', label: 'Permissions', icon: '👥' },
+    // { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'danger', label: 'Danger Zone', icon: '⚠️' }
   ];
+
+  useEffect(() => {
+    getSocietyDetails();
+  }, []);
 
   return (
     <>
@@ -139,11 +191,10 @@ export default function Society_Settings() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        activeTab === tab.id
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
+                      className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === tab.id
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
                     >
                       <span className="mr-3">{tab.icon}</span>
                       {tab.label}
@@ -160,7 +211,7 @@ export default function Society_Settings() {
                 {activeTab === 'general' && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">General Settings</h3>
-                    
+
                     <div className="space-y-6">
                       <div>
                         <label htmlFor="society-name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -207,80 +258,6 @@ export default function Society_Settings() {
                             <option value="Social">Social</option>
                           </select>
                         </div>
-
-                        <div>
-                          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                            Location
-                          </label>
-                          <input
-                            type="text"
-                            id="location"
-                            value={settings.general.location}
-                            onChange={(e) => handleGeneralChange('location', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                            Website
-                          </label>
-                          <input
-                            type="url"
-                            id="website"
-                            value={settings.general.website}
-                            onChange={(e) => handleGeneralChange('website', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                            Contact Email
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            value={settings.general.email}
-                            onChange={(e) => handleGeneralChange('email', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Tags
-                        </label>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {settings.general.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                            >
-                              {tag}
-                              <button
-                                onClick={() => removeTag(tag)}
-                                className="ml-2 text-blue-600 hover:text-blue-800"
-                              >
-                                ×
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Add a tag and press Enter"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              addTag(e.currentTarget.value);
-                              e.currentTarget.value = '';
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
                       </div>
                     </div>
                   </div>
@@ -290,7 +267,7 @@ export default function Society_Settings() {
                 {activeTab === 'privacy' && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Privacy Settings</h3>
-                    
+
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -377,7 +354,7 @@ export default function Society_Settings() {
                 {activeTab === 'permissions' && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Member Permissions</h3>
-                    
+
                     <div className="space-y-6">
                       {[
                         { key: 'whoCanPost', label: 'Who can create posts?', description: 'Control who can share posts in the society timeline' },
@@ -408,7 +385,7 @@ export default function Society_Settings() {
                 {activeTab === 'notifications' && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Notification Settings</h3>
-                    
+
                     <div className="space-y-6">
                       {[
                         { key: 'newMemberNotifications', label: 'New member notifications', description: 'Get notified when someone joins the society' },
@@ -440,25 +417,15 @@ export default function Society_Settings() {
                 {activeTab === 'danger' && (
                   <div>
                     <h3 className="text-lg font-semibold text-red-600 mb-6">Danger Zone</h3>
-                    
+
                     <div className="space-y-6">
                       <div className="border border-red-200 rounded-lg p-6 bg-red-50">
-                        <h4 className="text-lg font-medium text-red-900 mb-2">Transfer Ownership</h4>
+                        <h4 className="text-lg font-medium text-red-900 mb-2">Leave Society</h4>
                         <p className="text-sm text-red-700 mb-4">
-                          Transfer ownership of this society to another admin. This action cannot be undone.
+                          Leave this society. you will no longer be able to post or create events.
                         </p>
-                        <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-                          Transfer Ownership
-                        </button>
-                      </div>
-
-                      <div className="border border-red-200 rounded-lg p-6 bg-red-50">
-                        <h4 className="text-lg font-medium text-red-900 mb-2">Archive Society</h4>
-                        <p className="text-sm text-red-700 mb-4">
-                          Archive this society. Members will no longer be able to post or create events, but all content will be preserved.
-                        </p>
-                        <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-                          Archive Society
+                        <button onClick={leaveSociety} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                          Leave Society
                         </button>
                       </div>
 
@@ -485,7 +452,7 @@ export default function Society_Settings() {
                       <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                         Cancel
                       </button>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      <button onClick={handleSaveChanges} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                         Save Changes
                       </button>
                     </div>
