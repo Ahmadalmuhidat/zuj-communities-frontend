@@ -68,9 +68,9 @@ export default function Post_Card({ post }: PostCardProps) {
 
     try {
       const res = await AxiosClient.post('/comment/create_comment', {
+        token: localStorage.getItem("token"),
         content: commentText,
         post_id: post.ID,
-        user_id: localStorage.getItem('token'),
       });
 
       if (res.status !== 200) {
@@ -89,6 +89,7 @@ export default function Post_Card({ post }: PostCardProps) {
   const getComments = async () => {
     const res = await AxiosClient.get('/comment/get_comments_by_post', {
       params: {
+         token: localStorage.getItem("token"),
         post_id: post.ID,
       },
     });

@@ -34,8 +34,31 @@ export default function Society_Detail() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const { isMember } = SocietyMembership();
+  const [showModal, setShowModal] = useState(false);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [newPostImage, setNewPostImage] = useState('');
 
-  const get_posts = async () => {
+  const handleCreatePost = async () => {
+    try {
+      const res = await AxiosClient.post("/posts/create_post", {
+        token: localStorage.getItem("token"),
+        content: newPostContent,
+        image: newPostImage || '', // now it's a link
+        society_id: id
+      });
+
+      if (res.status === 201) {
+        setShowModal(false);
+        setNewPostContent('');
+        setNewPostImage('');
+        getPosts(); // refresh
+      }
+    } catch (err) {
+      console.error("Error creating post:", err);
+    }
+  };
+
+  const getPosts = async () => {
     try {
       const res = await AxiosClient.get("/posts/get_posts_by_society", {
         params: {
@@ -52,7 +75,7 @@ export default function Society_Detail() {
     }
   };
 
-  const get_events_by_society = async () => {
+  const getEventsBySociety = async () => {
     const res = await AxiosClient.get("/events/get_events_by_society", {
       params: {
         society_id: id
@@ -66,8 +89,8 @@ export default function Society_Detail() {
   }
 
   useEffect(() => {
-    get_posts();
-    get_events_by_society();
+    getPosts();
+    getEventsBySociety();
   }, [id]);
 
   return (
@@ -77,12 +100,20 @@ export default function Society_Detail() {
         showJoinButton={!isMember}
         actionButton={
           isMember ? (
-            <Link
-              to={`/societies/${id}/events/new`}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Create Event
-            </Link>
+            <div className="flex gap-4">
+              <Link
+                to={`/societies/${id}/events/new`}
+                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Create Event
+              </Link>
+              <button
+                onClick={() => setShowModal(true)}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Create Post
+              </button>
+            </div>
           ) : undefined
         }
       />
@@ -136,6 +167,66 @@ export default function Society_Detail() {
           </div>
         </div>
       </main>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Create a New Post</h2>
+
+            <div className="mb-4">
+              <textarea
+                placeholder="What's on your mind?"
+                className="w-full bg-gray-100 p-3 rounded-xl resize-none text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+              ></textarea>
+            </div>
+
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Image URL (optional)"
+                className="w-full bg-gray-100 p-3 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={newPostImage as string}
+                onChange={(e) => setNewPostImage(e.target.value)}
+              />
+            </div>
+
+            {newPostImage && (
+              <div className="mb-4 relative">
+                <img
+                  src={newPostImage}
+                  alt="Preview"
+                  className="w-full rounded-lg max-h-64 object-cover"
+                />
+                <button
+                  onClick={() => setNewPostImage('')}
+                  className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreatePost}
+                disabled={!newPostContent.trim()}
+                className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
